@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Will You Be My Valentine?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Quicksand", sans-serif;
+        overflow: hidden; /* Prevent scrollbars when button moves out of bounds */
+        touch-action: none; /* Prevent zooming and default touch actions */
+        -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+      }
+
+      h1 {
+        font-family: "Pacifico", cursive;
+      }
+
+      /* Smooth transition for the Yes button growth */
+      #yesBtn {
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 20; /* Ensure Yes stays on top if it gets huge */
+      }
+
+      /* The No button needs absolute positioning to dance around */
+      #noBtn {
+        position: relative; /* Starts relative, switches to fixed */
+        transition: top 0.2s ease, left 0.2s ease;
+        z-index: 10;
+      }
+
+      /* Success Image Container */
+      .image-placeholder {
+        width: 100%;
+        max-width: 400px;
+        height: 300px; /* Adjust height as needed */
+        background-color: #fce7f3; /* Light pink */
+        border: 4px dashed #ec4899; /* Pink dashed border */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #db2777;
+        border-radius: 1rem;
+        margin: 0 auto;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .image-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;/* Hidden by default until you add a src */
+      }
+
+      /* Canvas Layers */
+      #fireworksCanvas,
+      #confettiCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      #fireworksCanvas {
+        z-index: 1;
+      }
+      #confettiCanvas {
+        z-index: 100;
+      }
+
+      /* Content z-index to sit above fireworks but below confetti */
+      #mainContainer {
+        position: relative;
+        z-index: 50;
+      }
+
+      /* Hidden utility */
+      .hidden-custom {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-pink-100 via-red-50 to-pink-200 h-screen w-screen flex flex-col items-center justify-center select-none"
+  >
+    <!-- Canvas Elements -->
+    <canvas id="fireworksCanvas"></canvas>
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Main Content Card -->
+    <div
+      id="mainContainer"
+      class="bg-white/80 backdrop-blur-sm p-6 md:p-8 rounded-3xl shadow-2xl text-center max-w-md w-11/12 mx-auto border border-white/50"
+    >
+      <!-- STEP 1: The Question -->
+      <div id="questionView">
+        <div class="mb-6 md:mb-8">
+          <img
+            src="sun.jpeg"
+            alt="Cute decoration"
+            class="w-24 h-24 md:w-32 md:h-32 mx-auto mb-4 rounded-full object-cover shadow-lg pointer-events-none"
+          />
+          <h1
+            class="text-3xl md:text-5xl text-pink-600 mb-4 drop-shadow-sm leading-tight"
+          >
+            Will you be my Valentine? (sahi wala pakka)
+          </h1>
+          <p class="text-gray-600 text-base md:text-lg">
+            You get: ragebaited
+          </p>
+        </div>
+
+        <!-- Buttons Container: Forced Row Layout for Mobile -->
+        <div
+          class="flex flex-row items-center justify-center gap-3 w-full relative min-h-[60px]"
+        >
+          <!-- Yes Button -->
+          <button
+            id="yesBtn"
+            class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 md:px-8 rounded-full shadow-lg transform active:scale-95 text-lg md:text-xl whitespace-nowrap"
+          >
+            MHMHMHM 
+          </button>
+
+          <!-- No Button -->
+          <button
+            id="noBtn"
+            class="bg-red-400 text-white font-bold py-3 px-6 md:px-8 rounded-full shadow-lg text-lg md:text-xl whitespace-nowrap"
+          >
+            nuhuh
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Success View (Hidden initially) -->
+      <div id="successView" class="hidden-custom">
+        <h1 class="text-4xl md:text-5xl text-pink-600 mb-6 animate-bounce">
+          YAYAYAYAYA
+        </h1>
+
+        <!-- Placeholder for your image -->
+        <div class="image-placeholder shadow-inner">
+          <!-- Instructions for you -->
+          <div id="placeholderText" class="text-center p-4 hidden-custom">
+           
+          </div>
+
+          <!-- 
+                   TO ADD YOUR IMAGE: 
+                   1. Remove the style="display:none" from the img tag below.
+                   2. Change src="" to your image URL.
+                   3. Add class="hidden-custom" to the div with id="placeholderText" above.
+                -->
+          <img src="chanda.jpeg" alt="Us" id="userImage" />
+        </div>
+
+        <p class="text-xl md:text-2xl text-gray-700 mt-6 font-semibold">
+          HELL FRICKING YEAAAAAA THAAAAANKS SHEHZADI MERI
+        </p>
+        <p class="text-gray-500 mt-2">Hehe keep an eye out gang 😛</p>
+
+        <button
+          onclick="location.reload()"
+          class="mt-8 text-sm text-pink-400 hover:text-pink-600 underline"
+        >
+          Phir se?
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // --- LOGIC ---
+      const yesBtn = document.getElementById("yesBtn");
+      const noBtn = document.getElementById("noBtn");
+      const questionView = document.getElementById("questionView");
+      const successView = document.getElementById("successView");
+      const mainContainer = document.getElementById("mainContainer");
+
+      let noHoverCount = 0;
+      let yesScale = 1;
+
+      // 1. "No" Button Interaction
+      function moveNoButton() {
+        noHoverCount++;
+
+        // Get viewport dimensions (safe area)
+        // We subtract button size + 20px padding to keep it on screen
+        const maxWidth = window.innerWidth - noBtn.offsetWidth - 20;
+        const maxHeight = window.innerHeight - noBtn.offsetHeight - 20;
+
+        // Calculate random position, ensuring it's positive
+        const randomX = Math.max(10, Math.floor(Math.random() * maxWidth));
+        const randomY = Math.max(10, Math.floor(Math.random() * maxHeight));
+
+        // Switch to fixed positioning to move freely around screen
+        noBtn.style.position = "fixed";
+        noBtn.style.left = randomX + "px";
+        noBtn.style.top = randomY + "px";
+
+        // Grow the Yes button
+        yesScale += 0.2; // Increases size by 20% each time
+        yesBtn.style.transform = `scale(${yesScale})`;
+
+        // Optional: Change text of Yes button after a few tries
+        if (noHoverCount === 1) yesBtn.innerText = "Oh what 🙁";
+        if (noHoverCount === 3) yesBtn.innerText = "ZAINAAAAAAAAAAAAB";
+        if (noHoverCount === 5) yesBtn.innerText = "YAAR PLEASE NA 🥺";
+         if (noHoverCount === 8) yesBtn.innerText = "ZAINAB SHAINAAAAAB";
+      }
+
+      // --- Touch Logic (Mobile) ---
+      // 'touchstart' fires immediately when a finger contacts the screen.
+      // We prevent default to stop the click from ever registering.
+      noBtn.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          moveNoButton();
+        },
+        { passive: false }
+      );
+
+      // --- Mouse Logic (Desktop) ---
+      noBtn.addEventListener("mouseover", moveNoButton);
+      noBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        moveNoButton();
+      });
+
+      // 2. "Yes" Button Interaction
+      yesBtn.addEventListener("click", () => {
+        // Hide Question, Show Success
+        questionView.classList.add("hidden-custom");
+        successView.classList.remove("hidden-custom");
+
+        // Start Animations
+        startConfetti();
+        startFireworks();
+      });
+
+      // --- ANIMATIONS ---
+
+      // Confetti Engine
+      const confettiCanvas = document.getElementById("confettiCanvas");
+      const ctxConfetti = confettiCanvas.getContext("2d");
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+
+      let confettiParticles = [];
+      const confettiColors = [
+        "#ff0a54",
+        "#ff477e",
+        "#ff7096",
+        "#ff85a1",
+        "#fbb1bd",
+        "#f9bec7",
+      ];
+
+      function startConfetti() {
+        for (let i = 0; i < 300; i++) {
+          confettiParticles.push({
+            x: Math.random() * confettiCanvas.width,
+            y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+            r: Math.random() * 6 + 4,
+            d: Math.random() * 10 + 10, // density
+            color:
+              confettiColors[Math.floor(Math.random() * confettiColors.length)],
+            tilt: Math.floor(Math.random() * 10) - 10,
+            tiltAngle: 0,
+            tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+          });
+        }
+        animateConfetti();
+      }
+
+      function animateConfetti() {
+        ctxConfetti.clearRect(
+          0,
+          0,
+          confettiCanvas.width,
+          confettiCanvas.height
+        );
+
+        confettiParticles.forEach((p, index) => {
+          p.tiltAngle += p.tiltAngleIncremental;
+          p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+          p.tilt = Math.sin(p.tiltAngle - index / 3) * 15;
+
+          ctxConfetti.beginPath();
+          ctxConfetti.lineWidth = p.r;
+          ctxConfetti.strokeStyle = p.color;
+          ctxConfetti.moveTo(p.x + p.tilt + p.r / 2, p.y);
+          ctxConfetti.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 5);
+          ctxConfetti.stroke();
+
+          // Respawn if out of view
+          if (p.y > confettiCanvas.height) {
+            p.x = Math.random() * confettiCanvas.width;
+            p.y = -20;
+            p.tilt = Math.floor(Math.random() * 10) - 10;
+          }
+        });
+
+        requestAnimationFrame(animateConfetti);
+      }
+
+      // Fireworks Engine
+      const fwCanvas = document.getElementById("fireworksCanvas");
+      const ctxFw = fwCanvas.getContext("2d");
+      fwCanvas.width = window.innerWidth;
+      fwCanvas.height = window.innerHeight;
+
+      let fireworks = [];
+      let particles = [];
+
+      class Firework {
+        constructor() {
+          this.x = Math.random() * fwCanvas.width;
+          this.y = fwCanvas.height;
+          this.sx = Math.random() * 3 - 1.5;
+          this.sy = -(Math.random() * 4 + 4);
+          this.size = 2;
+          this.hue = Math.floor(Math.random() * 360);
+        }
+        update() {
+          this.x += this.sx;
+          this.y += this.sy;
+          this.sy += 0.05; // gravity
+
+          // Explode at peak
+          if (this.sy >= -2 || this.y <= 100) {
+            createParticles(this.x, this.y, this.hue);
+            return true; // remove firework
+          }
+          return false;
+        }
+        draw() {
+          ctxFw.fillStyle = `hsl(${this.hue}, 100%, 50%)`;
+          ctxFw.beginPath();
+          ctxFw.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctxFw.fill();
+        }
+      }
+
+      class Particle {
+        constructor(x, y, hue) {
+          this.x = x;
+          this.y = y;
+          this.sx = Math.random() * 6 - 3;
+          this.sy = Math.random() * 6 - 3;
+          this.size = Math.random() * 2 + 1;
+          this.hue = hue;
+          this.life = 100;
+        }
+        update() {
+          this.x += this.sx;
+          this.y += this.sy;
+          this.sy += 0.05; // gravity
+          this.life -= 1.5;
+          if (this.life <= 0) return true;
+          return false;
+        }
+        draw() {
+          ctxFw.fillStyle = `hsla(${this.hue}, 100%, 50%, ${this.life / 100})`;
+          ctxFw.beginPath();
+          ctxFw.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctxFw.fill();
+        }
+      }
+
+      function createParticles(x, y, hue) {
+        for (let i = 0; i < 30; i++) {
+          particles.push(new Particle(x, y, hue));
+        }
+      }
+
+      function startFireworks() {
+        animateFireworks();
+        // Launch a new firework every 800ms
+        setInterval(() => {
+          fireworks.push(new Firework());
+        }, 800);
+      }
+
+      function animateFireworks() {
+        // Create trails
+        ctxFw.fillStyle = "rgba(255, 230, 240, 0.2)"; // Light fade for trails
+        ctxFw.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+
+        fireworks = fireworks.filter((fw) => {
+          fw.draw();
+          return !fw.update();
+        });
+
+        particles = particles.filter((p) => {
+          p.draw();
+          return !p.update();
+        });
+
+        requestAnimationFrame(animateFireworks);
+      }
+
+      // Resize handling
+      window.addEventListener("resize", () => {
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+        fwCanvas.width = window.innerWidth;
+        fwCanvas.height = window.innerHeight;
+      });
+    </script>
+  </body>
+</html>
